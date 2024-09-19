@@ -4,6 +4,7 @@
 #include <arpa/inet.h>  // For sockaddr_in and inet_addr
 #include <sys/socket.h> // For socket functions
 #include <unistd.h> 
+#include <stdbool.h>
 int main(){
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     int val = 1;
@@ -16,6 +17,19 @@ int main(){
     int rv = bind(fd, (const struct sockaddr *)&addr, sizeof(addr));
     if (rv) {
         die("bind()");
+    }
+    rv = listen(fd, SOMAXCONN);
+    if (rv){
+        die("listen()");
+    }
+    while (true) {
+        struct sockaddr_in client_addr = {};
+        socklen_t addrlen = sizeof(client_addr);
+        int connfd = accept(fd, (struct sockaddr *)&client_addr, &addrlen);
+        if (connfd < 0){
+            continue;
+        }
+        close(connfd);
     }
 }
 
