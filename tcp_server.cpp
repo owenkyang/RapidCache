@@ -5,9 +5,25 @@
 #include <sys/socket.h>
 #include <unistd.h> 
 #include <stdbool.h>
-void die(const char *msg) {
-    perror(msg);
-    exit(EXIT_FAILURE);
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+static void process(int connfd){
+    char rbuf[64] = {};
+    ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
+    if (n < 0){
+        std::cerr << "read() error" << std::endl;
+        return;
+    }
+    printf("client says : %s\n", rbuf);
+    char wbuf[] = "world";
+    write(connfd, wbuf, strlen(wbuf));
+}
+
+void die(const char* msg) {
+    std::cerr << msg << ": " << std::strerror(errno) << std::endl;
+    std::exit(EXIT_FAILURE);
 }
 int main(){
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -33,6 +49,7 @@ int main(){
         if (connfd < 0){
             continue;
         }
+        process(connfd);
         close(connfd);
     }
 
